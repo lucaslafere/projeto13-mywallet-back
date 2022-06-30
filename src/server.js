@@ -5,98 +5,22 @@ import { MongoClient, ObjectId } from 'mongodb';
 import joi from 'joi';
 import { v4 as uuid } from 'uuid';
 import bcrypt, { compareSync } from 'bcrypt';
+import { signUp, login } from './controllers/userController.js';
+import { getReceipts  } from './controllers/receiptsController.js';
+import db from './databases/mongo.js';
 
 dotenv.config();
 const server = express();
 server.use(cors());
 server.use(json());
 
-const mongoClient = new MongoClient(process.env.MONGO_URI);
-let db = mongoClient.db("my-wallet")
+server.post('/sign-up', signUp);
 
-server.post('/sign-up', async (req, res) => {
-    const user = req.body;
-    const signUpSchema = joi.object({
-        name: joi.string().required(),
-        email: joi.string().email().required(),
-        password: joi.string().min(4).max(15).required(),
-        confirmPassword: joi.string().required().valid(joi.ref('password'))
-    });
-    const validation = signUpSchema.validate(user, { abortEarly: false });
-    if (validation.error) {
-        console.log(validation.error.details)
-        res.status(422).send(validation.error.details);
-        return;
-    }
-    const passwordHash = bcrypt.hashSync(user.password, 10);
-    try {
-        await mongoClient.connect();
-        const collectionUsers = db.collection("users");
-        const checkSameUser = await collectionUsers.findOne({ email: user.email });
+server.post('/login', login);
 
-        if (checkSameUser) {
-            res.status(409).send("Já existe um usuário cadastrado com esse email");
-            return;
-        }
-        await collectionUsers.insertOne({ ...user, password: passwordHash, confirmPassword: passwordHash });
-        res.sendStatus(201);
-        return;
-    } catch (error) {
-        res.sendStatus(500);
-        return;
-    }
+// receipts should send credit and debt data, not user data, fix in controller
+server.get('/receipts', getReceipts);
 
-})
-server.post('/login', async (req, res) => {
-    const userLogin = req.body;
-    const loginSchema = joi.object({
-        email: joi.string().email().required(),
-        password: joi.string().min(4).max(15).required()
-    })
-    try {
-        await mongoClient.connect();
-        const collectionUsers = db.collection("users");
-        const existingUser = await collectionUsers.findOne({ email: userLogin.email });
-
-        if (userLogin && compareSync(userLogin.password, existingUser.password)) {
-            const token = uuid();
-            await db.collection("sessions").insertOne({
-                userId: existingUser._id,
-                token
-            });
-            
-            return res.status(201).send({ token });
-            
-        } else { return res.status(401).send("Email e/ou senha inválidos") }
-
-    } catch (error) {
-        return res.sendStatus(500);
-    }
-})
-server.get('/receipts', async (req, res) => {
-    const { authorization } = req.headers;
-    const token = authorization?.replace('Bearer ', '');
-    if (!token) return res.sendStatus(401);
-
-    try {
-    const session = await db.collection("sessions").findOne({token});
-    if (!session) {
-        return res.sendStatus(401);
-    }
-    const user = await db.collection("users").findOne({
-        _id: session.userId
-    });
-    if (user) {
-        delete user.password;
-        delete user.confirmPassword;
-        delete user._id;
-        return res.send(user);
-    } else return res.sendStatus(404);
-    } catch (error) {
-        return res.sendStatus(500);
-    }
-    
-})
 server.post('/newCredit', async (req, res) => {
 
 })
