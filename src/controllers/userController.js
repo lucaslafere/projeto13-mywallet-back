@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import joi from 'joi';
 import db from '../databases/mongo.js';
 
-export async function signUp (req, res) {
+export async function signUp(req, res) {
     const user = req.body;
     const signUpSchema = joi.object({
         name: joi.string().required(),
@@ -13,9 +13,7 @@ export async function signUp (req, res) {
     });
     const validation = signUpSchema.validate(user, { abortEarly: false });
     if (validation.error) {
-        console.log(validation.error.details)
-        res.status(422).send(validation.error.details);
-        return;
+        return res.status(422).send(validation.error.details);
     }
     const passwordHash = bcrypt.hashSync(user.password, 10);
     try {
@@ -23,18 +21,16 @@ export async function signUp (req, res) {
         const checkSameUser = await collectionUsers.findOne({ email: user.email });
 
         if (checkSameUser) {
-            res.status(409).send("Já existe um usuário cadastrado com esse email");
-            return;
+            return res.status(409).send("Já existe um usuário cadastrado com esse email");
+
         }
-        await collectionUsers.insertOne({ ...user, password: passwordHash, confirmPassword: passwordHash });
-        res.sendStatus(201);
-        return;
+        await collectionUsers.insertOne({ ...user, password: passwordHash, confirmPassword: passwordHash, receipts: [] });
+        return res.sendStatus(201);
     } catch (error) {
-        res.sendStatus(500);
-        return;
+        return res.sendStatus(500);
     }
 }
-export async function login (req, res) {
+export async function login(req, res) {
     const userLogin = req.body;
     const loginSchema = joi.object({
         email: joi.string().email().required(),
@@ -50,9 +46,9 @@ export async function login (req, res) {
                 userId: existingUser._id,
                 token
             });
-            
+
             return res.status(201).send({ token });
-            
+
         } else { return res.status(401).send("Email e/ou senha inválidos") }
 
     } catch (error) {
