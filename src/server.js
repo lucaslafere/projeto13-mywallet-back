@@ -58,7 +58,7 @@ server.post('/login', async (req, res) => {
         const collectionUsers = db.collection("users");
         const existingUser = await collectionUsers.findOne({ email: userLogin.email });
 
-        if (userLogin && bcrypt.compareSync(userLogin.password, existingUser.password)) {
+        if (userLogin && compareSync(userLogin.password, existingUser.password)) {
             const token = uuid();
             await db.collection("sessions").insertOne({
                 userId: existingUser._id,
@@ -74,7 +74,28 @@ server.post('/login', async (req, res) => {
     }
 })
 server.get('/receipts', async (req, res) => {
+    const { authorization } = req.headers;
+    const token = authorization?.replace('Bearer ', '');
+    if (!token) return res.sendStatus(401);
 
+    try {
+    const session = await db.collection("sessions").findOne({token});
+    if (!session) {
+        return res.sendStatus(401);
+    }
+    const user = await db.collection("users").findOne({
+        _id: session.userId
+    });
+    if (user) {
+        delete user.password;
+        delete user.confirmPassword;
+        delete user._id;
+        return res.send(user);
+    } else return res.sendStatus(404);
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+    
 })
 server.post('/newCredit', async (req, res) => {
 
