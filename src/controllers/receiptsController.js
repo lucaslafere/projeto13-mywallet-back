@@ -1,5 +1,8 @@
 import joi from 'joi';
 import db from '../databases/mongo.js';
+import dayjs from 'dayjs';
+import 'dayjs/locale/pt-br.js';
+
 
 export async function getReceipts(req, res) {
     const { authorization } = req.headers;
@@ -50,7 +53,7 @@ export async function createCredit(req, res) {
             {
                 $push:
                 {
-                    receipts: {value: credit.value, description: credit.description, type: "credit"}
+                    receipts: {value: credit.value, description: credit.description, type: "credit", date: dayjs().locale('pt-br').format('DD/MM')}
                 }
             }
         );
@@ -88,7 +91,7 @@ export async function createDebt(req, res) {
             {
                 $push:
                 {
-                    receipts: {value: debt.value, description: debt.description, type: "debt"}
+                    receipts: {value: debt.value, description: debt.description, type: "debt", date: dayjs().locale('pt-br').format('DD/MM')}
                 }
             }
         );
