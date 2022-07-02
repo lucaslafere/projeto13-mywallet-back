@@ -30,7 +30,7 @@ export async function getReceipts(req, res) {
 export async function createCredit(req, res) {
     const credit = req.body;
     const creditSchema = joi.object({
-        value: joi.number().required(),
+        value: joi.number().positive().required(),
         description: joi.string().required()
     });
     const { error } = creditSchema.validate(credit, { abortEarly: false });
@@ -68,7 +68,7 @@ export async function createCredit(req, res) {
 export async function createDebt(req, res) {
     const debt = req.body;
     const debtSchema = joi.object({
-        value: joi.number().required(),
+        value: joi.number().positive().required(),
         description: joi.string().required()
     });
     const { error } = debtSchema.validate(debt, { abortEarly: false });
