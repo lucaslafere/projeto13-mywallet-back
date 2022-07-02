@@ -39,9 +39,7 @@ export async function createCredit(req, res) {
     const { authorization } = req.headers;
     const token = authorization?.replace('Bearer ', '').trim();
     if (!token) return res.sendStatus(401);
-    if(description.length > 18) {
-        return res.status(401).send("Sua descriçao deve ter no máximo 18 caracteres");
-    }
+ 
     try {
         const session = await db.collection("sessions").findOne({ token });
         if (!session) {
@@ -79,9 +77,7 @@ export async function createDebt(req, res) {
     const { authorization } = req.headers;
     const token = authorization?.replace('Bearer ', '').trim();
     if (!token) return res.sendStatus(401);
-    if(description.length > 18) {
-        return res.status(401).send("Sua descriçao deve ter no máximo 18 caracteres");
-    }
+
     try {
         const session = await db.collection("sessions").findOne({ token });
         if (!session) {
