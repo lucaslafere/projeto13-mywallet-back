@@ -31,7 +31,7 @@ export async function createCredit(req, res) {
     const credit = req.body;
     const creditSchema = joi.object({
         value: joi.number().positive().required(),
-        description: joi.string().required()
+        description: joi.string().max(24).required()
     });
     const { error } = creditSchema.validate(credit, { abortEarly: false });
     if (error) return res.status(400).send(error.details);
@@ -39,7 +39,9 @@ export async function createCredit(req, res) {
     const { authorization } = req.headers;
     const token = authorization?.replace('Bearer ', '').trim();
     if (!token) return res.sendStatus(401);
-
+    if(description.length > 24) {
+        return res.status(401).send("Sua descriçao deve ter no máximo 24 caracteres");
+    }
     try {
         const session = await db.collection("sessions").findOne({ token });
         if (!session) {
@@ -69,7 +71,7 @@ export async function createDebt(req, res) {
     const debt = req.body;
     const debtSchema = joi.object({
         value: joi.number().positive().required(),
-        description: joi.string().required()
+        description: joi.string().max(24).required()
     });
     const { error } = debtSchema.validate(debt, { abortEarly: false });
     if (error) return res.status(400).send(error.details);
@@ -77,7 +79,9 @@ export async function createDebt(req, res) {
     const { authorization } = req.headers;
     const token = authorization?.replace('Bearer ', '').trim();
     if (!token) return res.sendStatus(401);
-
+    if(description.length > 24) {
+        return res.status(401).send("Sua descriçao deve ter no máximo 24 caracteres");
+    }
     try {
         const session = await db.collection("sessions").findOne({ token });
         if (!session) {
