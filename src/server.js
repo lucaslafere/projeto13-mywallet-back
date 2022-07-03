@@ -1,22 +1,15 @@
-import express, { json } from 'express';
+import express, { json, Router } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { signUp, login } from './controllers/userController.js';
-import { getReceipts, createCredit, createDebt } from './controllers/receiptsController.js';
+import userRouter from './routes/userRouter.js';
+import receiptsRouter from './routes/receiptsRouter.js';
 
 dotenv.config();
 const server = express();
 server.use(cors());
 server.use(json());
 
-server.post('/sign-up', signUp);
-
-server.post('/login', login);
-
-server.get('/receipts', getReceipts);
-
-server.post('/newCredit', createCredit);
-
-server.post('/newDebt', createDebt);
+server.use(userRouter);
+server.use(receiptsRouter);
 
 server.listen(process.env.PORT);

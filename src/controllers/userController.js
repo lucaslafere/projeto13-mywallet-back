@@ -36,6 +36,10 @@ export async function login(req, res) {
         email: joi.string().email().required(),
         password: joi.string().min(4).max(15).required()
     })
+    const validation = loginSchema.validate(userLogin, { abortEarly: false });
+    if (validation.error){
+        return res.status(401).send(validation.error.details);
+    }
     try {
         const collectionUsers = db.collection("users");
         const existingUser = await collectionUsers.findOne({ email: userLogin.email });

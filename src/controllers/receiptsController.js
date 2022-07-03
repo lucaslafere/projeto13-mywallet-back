@@ -5,29 +5,16 @@ import 'dayjs/locale/pt-br.js';
 
 
 export async function getReceipts(req, res) {
-    const { authorization } = req.headers;
-    const token = authorization?.replace('Bearer ', '').trim();
-    if (!token) return res.sendStatus(401);
-
+    const user = res.locals.user
     try {
-        const session = await db.collection("sessions").findOne({ token });
-        if (!session) {
-            return res.sendStatus(401);
-        }
-        const user = await db.collection("users").findOne({
-            _id: session.userId
-        });
-        if (user) {
-            ;
-            delete user.password;
-            delete user.confirmPassword;
-            return res.send(user);
-        } else return res.sendStatus(404);
+        return res.send(user);
     } catch (error) {
         return res.sendStatus(500);
     }
 };
 export async function createCredit(req, res) {
+    const user = res.locals.user
+    const session = res.locals.session
     const credit = req.body;
     const creditSchema = joi.object({
         value: joi.number().positive().precision(2).required(),
@@ -36,29 +23,18 @@ export async function createCredit(req, res) {
     const { error } = creditSchema.validate(credit, { abortEarly: false });
     if (error) return res.status(400).send(error.details);
 
-    const { authorization } = req.headers;
-    const token = authorization?.replace('Bearer ', '').trim();
-    if (!token) return res.sendStatus(401);
- 
     try {
-        const session = await db.collection("sessions").findOne({ token });
-        if (!session) {
-            return res.sendStatus(401);
-        };
-        const user = await db.collection("users").findOne({
-            _id: session.userId
-        });
+
+
         await db.collection("users").updateOne(
             { _id: session.userId },
             {
                 $push:
                 {
-                    receipts: {value: credit.value, description: credit.description, type: "credit", date: dayjs().locale('pt-br').format('DD/MM')}
+                    receipts: { value: credit.value, description: credit.description, type: "credit", date: dayjs().locale('pt-br').format('DD/MM') }
                 }
             }
         );
-        delete user.password;
-        delete user.confirmPassword;
         return res.sendStatus(201);
 
     } catch (error) {
@@ -66,6 +42,8 @@ export async function createCredit(req, res) {
     }
 };
 export async function createDebt(req, res) {
+    const user = res.locals.user
+    const {session} = res.locals.session
     const debt = req.body;
     const debtSchema = joi.object({
         value: joi.number().positive().precision(2).required(),
@@ -74,32 +52,21 @@ export async function createDebt(req, res) {
     const { error } = debtSchema.validate(debt, { abortEarly: false });
     if (error) return res.status(400).send(error.details);
 
-    const { authorization } = req.headers;
-    const token = authorization?.replace('Bearer ', '').trim();
-    if (!token) return res.sendStatus(401);
-
     try {
-        const session = await db.collection("sessions").findOne({ token });
-        if (!session) {
-            return res.sendStatus(401);
-        };
-        const user = await db.collection("users").findOne({
-            _id: session.userId
-        });
+
         await db.collection("users").updateOne(
             { _id: session.userId },
             {
                 $push:
                 {
-                    receipts: {value: debt.value, description: debt.description, type: "debt", date: dayjs().locale('pt-br').format('DD/MM')}
+                    receipts: { value: debt.value, description: debt.description, type: "debt", date: dayjs().locale('pt-br').format('DD/MM') }
                 }
             }
         );
-        delete user.password;
-        delete user.confirmPassword;
         return res.sendStatus(201);
 
     } catch (error) {
         return res.sendStatus(500);
     }
 };
+
