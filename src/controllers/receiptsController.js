@@ -43,7 +43,7 @@ export async function createCredit(req, res) {
 };
 export async function createDebt(req, res) {
     const user = res.locals.user
-    const {session} = res.locals.session
+    const session = res.locals.session
     const debt = req.body;
     const debtSchema = joi.object({
         value: joi.number().positive().precision(2).required(),
