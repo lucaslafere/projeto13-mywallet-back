@@ -54,6 +54,7 @@ export async function createDebt(req, res) {
 
     try {
 
+
         await db.collection("users").updateOne(
             { _id: session.userId },
             {
@@ -68,5 +69,4 @@ export async function createDebt(req, res) {
     } catch (error) {
         return res.sendStatus(500);
     }
-};
-
+}
