@@ -3,10 +3,10 @@ import db from '../databases/mongo.js';
 async function validateUserToken(req, res, next) {
     const { authorization } = req.headers;
     const token = authorization?.replace('Bearer ', '').trim();
-    if (!token) return res.sendStatus(401);
+    if (!token) return res.status(401).send("bad token");
     const session = await db.collection("sessions").findOne({ token });
     if (!session) {
-        return res.sendStatus(401);
+        return res.status(401).send("no session found");
     }
     const user = await db.collection("users").findOne({
         _id: session.userId
