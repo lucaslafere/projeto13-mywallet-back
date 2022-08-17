@@ -70,3 +70,30 @@ export async function createDebt(req, res) {
     }
 };
 
+export async function deleteRegister (req, res) {
+    const user = res.locals.user;
+    const session = res.locals.session;
+    const transfer = req.body;
+    const transferSchema = joi.object({
+        value: joi.number().positive().precision(2).required(),
+        description: joi.string().max(18).required(),
+        type: joi.string().valid('debt', 'credit').required()
+    });
+    const { error } = transferSchema.validate(transfer, {abortEarly: false});
+    if (error) return res.status(400).send(error.message);
+    try {
+        await db.collection("users").updateOne(
+            { _id: session.userId },
+            {
+                $pull:
+                {
+                    receipts: { value: transfer.value, description: transfer.description, type: transfer.type}
+                }
+            }
+        );
+        return res.sendStatus(200);
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+}
+
