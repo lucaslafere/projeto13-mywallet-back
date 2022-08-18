@@ -7,6 +7,6 @@ const router = express.Router();
 router.get('/receipts', validateUserToken, getReceipts);
 router.post('/newCredit', validateUserToken, createCredit);
 router.post('/newDebt', validateUserToken, createDebt);
-router.delete('/delete-register', validateUserToken, deleteRegister);
+router.post('/delete-register', validateUserToken, deleteRegister);
 
 export default router;
